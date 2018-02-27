@@ -1,0 +1,4 @@
+*.bin
+*.cudf
+bin/
+.DS_Store
