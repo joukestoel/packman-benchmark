@@ -8,7 +8,7 @@ To test the expresiveness of AlleAlle we encoded the optimal package resolution 
 This encoding was run on the problems used in the 'paranoid'-track of the 2012 package manager competition run by the [MANCOOSI Project](https://www.mancoosi.org/). 
 Spoiler: the encoding of the package resolution problem in AlleAlle gives the same results as were published in the competition results. 
 
-##Prerequisits:
+## Prerequisits:
 - You need to install [Rascal](https://rascal-mpl.org). AlleAlle and the benchmark are written in it.
 - You need to checkout [AlleAlle](https://github.com/cwi-swat/allealle) in your workspace. Please follow the install instructions on the AlleAlle Github page
 - You need to have a working version of the Z3 SMT solver (see the AlleAlle page for instructions)
