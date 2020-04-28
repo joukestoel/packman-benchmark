@@ -9,61 +9,70 @@ import List;
 import String;
 
 import util::Benchmarking;
+import util::Statistics;
+import util::Progress;
 
 @memo
-list[str] properties() = ["package","version","depends","conflicts","provides","installed","keep"];
+list[str] properties() = ["package","version","depends","conflicts","provides","installed","keep","number"];
 
-alias ParsedFileContent = tuple[list[Package] packages, Request req];
+alias ParsedFileContent = tuple[list[Package] packages, Request req, Statistic stats];
 
 ParsedFileContent readAndParseCudfFile(loc file) {
-  if (exists(file[extension="bin"])) {
-    println("Existing bin file found.");
+  loc binFile = file.parent + "/output/" + file.file + "/parsed.bin";
+  
+  println("PART 1 (of 6): Reading and parsing CUDF file");
+  if (exists(binFile)) {
+    println("Existing bin file with parsed packages found. Reading that");
+    println();
     
-    return readBinaryValueFile(#ParsedFileContent, file[extension="bin"]);
-        
+    return readBinaryValueFile(#ParsedFileContent, binFile);        
   } else {
-    println("No existing bin file found. Reading raw CUDF file.");
+    println("Reading raw CUDF file (No existing bin file with parsed packages found)");
     
-    tuple[str content, int time] rf = bmWithPrint("Reading CUDF file", readFile, file);
-    tuple[list[str] parts, int time] sonl = bmWithPrint("Splinting raw CUDF file in seperate stanzas", splitOnNewLines, rf.content);
-    println("Total nr of stanzas: <size(sonl.parts)>");
+    println("Reading CUDF file");
+    tuple[str content, int time] rf = bm(readFile, file);
+
+    println("Splitting raw CUDF file in seperate stanzas");
+    tuple[list[str] parts, int time] sonl = bm(splitOnNewLines, rf.content);
     
-    tuple[tuple[list[str] packages, str request] cat, int time] sp = bmWithPrint("Reading and filtering the different properties", splitParts, sonl.parts);
-    println("Nr of packages: <size(sp.cat.packages)>");
+    tuple[tuple[list[str] packages, str request] cat, int time] sp = bm(splitParts, sonl.parts);
   
     tuple[list[Package] parsedPackages, int time] pp = bm(parsePackages, sp.cat.packages);
-    println("Parsing and imploding took <pp.time / 1000000> ms");
     
     Request req = parseRequest(sp.cat.request);
     
-    int saveTime = bmWithPrint("Saving imploded result as binary file", writeBinaryValueFile, file[extension="bin"], <pp.parsedPackages, req>);
+    Statistic stats = parsing(size(sp.cat.packages), req has install && req.install != [], req has remove && req.remove != [], req has upgrade && req.upgrade != [], (rf.time + sonl.time + sp.time + pp.time) / 1000000);
     
-    return <pp.parsedPackages, req>;
+    println("Saving imploded result as binary file");
+    writeBinaryValueFile(binFile, <pp.parsedPackages, req, stats>);
+    println();
+        
+    return <pp.parsedPackages, req, stats>;
   }  
 }
 
-Request parseRequest(str req) = parseAndImplodeRequest(req);
+Request parseRequest(str req) = parseAndImplodeRequest(req) when trim(req) != "";
+default Request parseRequest(str req) = noRequest(); 
+
 
 list[Package] parsePackages(list[str] packages) {
-  print("Start parsing packages");
-  
   list[Package] parsedPackages = [];
-  int size = size(packages);
-  for (int i <- [0..size]) {
-    if (i % (size / 10) == 0) {
-      print("...<i / (size / 100)>%");
-    }
-     
+  int nrOfPackages = size(packages);
+  
+  pb = progressBar(nrOfPackages, length = 15, limit = 100, prefix = "Parsing filtered stanzas\t");
+  
+  for (int i <- [0..nrOfPackages]) {
+    pb.report("<i> of <nrOfPackages>");
     try {
       parsedPackages += parseAndImplodePackage(packages[i]);
-    } catch ex: {
+    } catch: {
       println(packages[i]);
       fail;
     } 
   }
   
-  print("..done\n");
-  
+  pb.finished();
+
   return parsedPackages;
 }
 
@@ -74,7 +83,13 @@ tuple[list[str] packages, str request] splitParts(list[str] parts) {
   list[str] packages = [];
   str request = "";
   
+  int i = 0;
+  int nrOfParts = size(parts);
+  pb = progressBar(nrOfParts, length = 15, limit = 100, prefix = "Reading different stanzas\t");
+
   for (str part <- parts) {
+    i += 1;
+    pb.report("<i> of <nrOfParts>");
     if (startsWith(part, "preamble:")) {
       ;// do nothing
     }
@@ -82,10 +97,13 @@ tuple[list[str] packages, str request] splitParts(list[str] parts) {
       packages += filterPackage(part);
     } else if (startsWith(part, "request:")) {
       request = part;
+    } else if (startsWith(part, "#")) {
+      ; // comment, skip
     } else {
       throw "Unreckognizable part; not a package and not a request. Content: <part>";
     }
   }
+  pb.finished();
   
   return <packages,request>;
 } 

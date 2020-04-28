@@ -17,11 +17,12 @@ syntax RequestStanza = RequestProperty* properties;
 
 syntax PackageProperty 
   = "version" ":" Int version
-  | "depends" ":" {PackageFormula  ","}+ formulas
-  | "conflicts" ":" {PackageFormula ","}+ formulas
-  | "provides" ":" {PackageFormula ","}+ formulas
+  | "depends" ":" {PackageFormula  ","}* formulas
+  | "conflicts" ":" {PackageFormula ","}* formulas
+  | "provides" ":" {PackageFormula ","}* formulas
   | "installed" ":" Bool b
   | "keep" ":" KeepValue kv 
+  | "number" ":" String nr
   ;
   
 syntax KeepValue 
@@ -32,9 +33,9 @@ syntax KeepValue
   ;
 
 syntax RequestProperty
-  = "install" ":" {PackageFormula ","}+ formulas
-  | "remove" ":" {PackageFormula ","}+ formulas
-  | "upgrade" ":" {PackageFormula ","}+ formulas
+  = "install" ":" {PackageFormula ","}* formulas
+  | "remove" ":" {PackageFormula ","}* formulas
+  | "upgrade" ":" {PackageFormula ","}* formulas
   ;
 
 syntax PackageFormula 
@@ -50,7 +51,7 @@ syntax PackageFormula
 
 lexical PackageName = ([A-Za-z./@()%0-9] !<< [A-Za-z./@()%0-9][A-Za-z0-9\-+./@()%]* !>> [A-Za-z0-9\-+./@()%]) \ Int;
   
-lexical Id = [a-z] !<< [a-z][a-z0-9\-]* !>> [a-zA-Z\-];
+//lexical Id = [a-z] !<< [a-z][a-z0-9\-]* !>> [a-zA-Z\-];
 
 lexical Bool = "true" | "false";
 lexical Int = [+\-]?[0-9]+ !>> [0-9];

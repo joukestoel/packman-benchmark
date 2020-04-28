@@ -1,4 +1,6 @@
 *.bin
-*.cudf
+*.native
 bin/
+output/
+result/
 .DS_Store

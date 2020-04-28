@@ -1,8 +1,11 @@
 module cudf::AST
 
-data Package = package(str name, int version, list[PackageFormula] depends, list[PackageFormula] conflicts, list[PackageFormula] provides, bool installed, KeepValue keep);
+data Package = package(str name, int version, list[PackageFormula] depends, list[PackageFormula] conflicts, list[PackageFormula] provides, bool installed, KeepValue keep, str number);
 
-data Request = request(str name, list[RequestProperty] properties);
+data Request 
+  = request(str name, list[PackageFormula] install, list[PackageFormula] remove,  list[PackageFormula] upgrade)
+  | noRequest()
+  ;
 
 data PackageProperty 
   = version(int version)
@@ -11,6 +14,7 @@ data PackageProperty
   | provides(list[PackageFormula] formulas)
   | installed(bool b)
   | keep(KeepValue kv)
+  | number(str nr)
   ;
 
 data RequestProperty
@@ -39,4 +43,5 @@ data KeepValue
   | package() 
   | feature()
   | none()
+  | normalized(set[PackageFormula] pf)
   ;

@@ -27,6 +27,18 @@ tuple[&T, int] bm(&T (&R,&Q,&S) methodToBenchmark, &R p1, &Q p2, &S p3) {
   return <result, cpuTime() - startTime>;
 }
 
+tuple[&T, int] bm(&T (&R,&Q,&S,&U) methodToBenchmark, &R p1, &Q p2, &S p3, &U p4) {
+  int startTime = cpuTime();
+  &T result = methodToBenchmark(p1,p2,p3,p4);
+  return <result, cpuTime() - startTime>;
+}
+
+tuple[&T, int] bm(&T (&R,&Q,&S,&U,&V) methodToBenchmark, &R p1, &Q p2, &S p3, &U p4, &V p5) {
+  int startTime = cpuTime();
+  &T result = methodToBenchmark(p1,p2,p3,p4,p5);
+  return <result, cpuTime() - startTime>;
+}
+
 int bmWithPrint(str pr, void (&R,&Q) methodToBenchmark, &R p1, &Q p2) {
   print("<pr>...");
   int startTime = cpuTime();
@@ -64,6 +76,14 @@ tuple[&T, int] bmWithPrint(str pr, &T (&R,&Q,&S) methodToBenchmark, &R p1, &Q p2
   print("<pr>...");
   int startTime = cpuTime();
   &T result = methodToBenchmark(p1,p2,p3);
+  print("done in <(cpuTime() - startTime) / 1000000> ms\n");
+  return <result, cpuTime() - startTime>;
+}
+
+tuple[&T, int] bmWithPrint(str pr, &T (&R,&Q,&S,&U) methodToBenchmark, &R p1, &Q p2, &S p3, &U p4) {
+  print("<pr>...");
+  int startTime = cpuTime();
+  &T result = methodToBenchmark(p1,p2,p3,p4);
   print("done in <(cpuTime() - startTime) / 1000000> ms\n");
   return <result, cpuTime() - startTime>;
 }
