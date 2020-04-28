@@ -1,4 +1,4 @@
-#AlleAlle Expresiveness Benchmark - Optimal Package resolution
+# AlleAlle Expresiveness Benchmark - Optimal Package resolution
 
 This project encodes an expresiveness benchmark for the [AlleAlle Relational Model Finder](https://github.com/cwi-swat/allealle).
 This benchmark was performed for the evaluation of the paper [AlleAlle: A Bounded Relational Model Finder with Unbounded Data](https://homepages.cwi.nl/~jurgenv/papers/onward-2019.pdf). 
