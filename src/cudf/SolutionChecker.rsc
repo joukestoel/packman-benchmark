@@ -15,7 +15,7 @@ import Set;
 
 alias SolutionCheckerResult = tuple[Statistic stats];
 
-SolutionCheckerResult checkSolution(loc file, bool sat, list[Package] packages, rel[str,int] toBeInstalled, rel[str,int] toBeRemoved, str solCheckerExec) {
+SolutionCheckerResult checkSolution(loc file, bool sat, list[Package] packages, rel[str,int] toBeInstalled, rel[str,int] toBeRemoved, str solCheckerExec, bool checkExternalCorrectness = true) {
   println("PART 6 (of 6): Checking found solution");  
   
   loc binFile = file.parent + "/output/" + file.file + "/sol.bin";
@@ -23,7 +23,11 @@ SolutionCheckerResult checkSolution(loc file, bool sat, list[Package] packages, 
   if(!exists(binFile)) {
     SolutionCheckerResult result;
     if (sat) {
-      tuple[bool solutionCorrect, int time] csc = bm(checkSolutionCorrectness, solCheckerExec, file, packages, toBeInstalled, toBeRemoved);
+      
+      tuple[bool solutionCorrect, int time] csc = <false,-1>;
+      if (checkExternalCorrectness) {
+        csc = bm(checkSolutionCorrectness, solCheckerExec, file, packages, toBeInstalled, toBeRemoved);
+      } 
       tuple[tuple[bool optimal, int winningTime] result, int time] cso = bm(checkSolutionOptimal, file, toBeInstalled, toBeRemoved);   
       
       result = <checkingSolution(csc.solutionCorrect, cso.result.optimal, cso.result.winningTime, (csc.time+cso.time)/1000000)>;

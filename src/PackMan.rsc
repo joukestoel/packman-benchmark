@@ -41,7 +41,7 @@ Statistic performRequest(loc cudf, str cudfSolCheckerExec = "/Users/jouke/worksp
   SlicedFileContent sfc     = slice(cudf, nfc.packages, nfc.req);
   ProblemBuilderResult pbr  = buildProblem(cudf, sfc.packages, sfc.req, saveProblemToFile = false); 
   FindModelResult fmr       = findSolution(cudf, pbr.problem);
-  SolutionCheckerResult scr = checkSolution(cudf, fmr.sat, pfc.packages, fmr.toBeInstalled, fmr.toBeRemoved,cudfSolCheckerExec);
+  SolutionCheckerResult scr = checkSolution(cudf, fmr.sat, pfc.packages, fmr.toBeInstalled, fmr.toBeRemoved,cudfSolCheckerExec, checkExternalCorrectness = true);
 
   println("Done checking \'<cudf>\'");
   println();    
