@@ -13,7 +13,7 @@ import util::Statistics;
 import util::Progress;
 
 @memo
-list[str] properties() = ["package","version","depends","conflicts","provides","installed","keep","number"];
+set[str] properties() = {"package","version","depends","conflicts","provides","installed","keep","number"};
 
 alias ParsedFileContent = tuple[list[Package] packages, Request req, Statistic stats];
 
@@ -32,10 +32,12 @@ ParsedFileContent readAndParseCudfFile(loc file) {
     println("Reading CUDF file");
     tuple[str content, int time] rf = bm(readFile, file);
 
+    str lineEnding = findLineEnding(rf.content);
+
     println("Splitting raw CUDF file in seperate stanzas");
-    tuple[list[str] parts, int time] sonl = bm(splitOnNewLines, rf.content);
+    tuple[list[str] parts, int time] sonl = bm(splitOnNewLines, rf.content, lineEnding);
     
-    tuple[tuple[list[str] packages, str request] cat, int time] sp = bm(splitParts, sonl.parts);
+    tuple[tuple[list[str] packages, str request] cat, int time] sp = bm(splitParts, sonl.parts, lineEnding);
   
     tuple[list[Package] parsedPackages, int time] pp = bm(parsePackages, sp.cat.packages);
     
@@ -51,9 +53,24 @@ ParsedFileContent readAndParseCudfFile(loc file) {
   }  
 }
 
+str findLineEnding(str content) {
+  // Three different possibilities
+  // 1: Unix style '\n'
+  // 2: Windows style '\r\n'
+  // 3: Old, weird style '\r'
+  int r = findFirst("\r", content);
+  int n = findFirst("\n", content);
+  
+  switch (<r,n>) {
+    case <-1,_>: return "\n";
+    case <_,-1>: return "\r"; 
+    case <i,j>:  return j == i + 1 ? "\r\n" : "\n";
+    default: throw "Unable to determine line ending character";
+  }
+}
+
 Request parseRequest(str req) = parseAndImplodeRequest(req) when trim(req) != "";
 default Request parseRequest(str req) = noRequest(); 
-
 
 list[Package] parsePackages(list[str] packages) {
   list[Package] parsedPackages = [];
@@ -76,10 +93,9 @@ list[Package] parsePackages(list[str] packages) {
   return parsedPackages;
 }
 
-list[str] splitOnNewLines(str content) = strippedParts
-  when list[str] strippedParts := [trim(p) | str p <- split("\n\n",content)];
+list[str] splitOnNewLines(str content, str lineEnding) = [trim(p) | str p <- split("<lineEnding><lineEnding>",content)];
 
-tuple[list[str] packages, str request] splitParts(list[str] parts) {
+tuple[list[str] packages, str request] splitParts(list[str] parts, str lineEnding) {
   list[str] packages = [];
   str request = "";
   
@@ -94,9 +110,9 @@ tuple[list[str] packages, str request] splitParts(list[str] parts) {
       ;// do nothing
     }
     else if (startsWith(part, "package:")) {
-      packages += filterPackage(part);
+      packages += filterPackage(part, lineEnding);
     } else if (startsWith(part, "request:")) {
-      request = part;
+      request = trim(part);
     } else if (startsWith(part, "#")) {
       ; // comment, skip
     } else {
@@ -108,21 +124,14 @@ tuple[list[str] packages, str request] splitParts(list[str] parts) {
   return <packages,request>;
 } 
 
-str filterPackage(str package) {  
+str filterPackage(str package, str lineEnding) {  
   str filtered = "";
   
   for (str prop <- split("\n",package), keepProperty(split(":",prop)[0])) {
-    filtered += "<prop>\n";
+    filtered += "<prop><lineEnding>";
   }
 
   return trim(filtered);
 }
 
-
-bool keepProperty(str prop)  {
-  for (str p <- properties(), prop == p) {
-    return true;
-  }
-  
-  return false;
-}
+bool keepProperty(str prop) = prop in properties(); 
