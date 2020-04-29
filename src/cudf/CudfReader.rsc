@@ -58,8 +58,8 @@ str findLineEnding(str content) {
   // 1: Unix style '\n'
   // 2: Windows style '\r\n'
   // 3: Old, weird style '\r'
-  int r = findFirst("\r", content);
-  int n = findFirst("\n", content);
+  int r = findFirst(content, "\r");
+  int n = findFirst(content, "\n");
   
   switch (<r,n>) {
     case <-1,_>: return "\n";
