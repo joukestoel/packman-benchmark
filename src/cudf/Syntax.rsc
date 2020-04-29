@@ -55,7 +55,7 @@ lexical PackageName = ([A-Za-z./@()%0-9] !<< [A-Za-z./@()%0-9][A-Za-z0-9\-+./@()
 
 lexical Bool = "true" | "false";
 lexical Int = [+\-]?[0-9]+ !>> [0-9];
-lexical String = ![\n\r]*$;
+lexical String = ![\n\r]*;
 
 layout Standard 
   = WhitespaceOrComment* !>> [\u0009-\u000D \u0020 \u0085 \u00A0 \u1680 \u180E \u2000-\u200A \u2028 \u2029 \u202F \u205F \u3000] !>> "//";
